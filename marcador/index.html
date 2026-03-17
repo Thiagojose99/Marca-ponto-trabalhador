@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relogio de Ponto</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+
+    <div class="main-container">
+        <header>
+            <h1>Registros</h1>
+            <div class="meta-box">
+                <span>Meta Diária: <strong>07:20</strong></span>
+            </div>
+        </header>
+
+        <section id="dashboardHoje" class="dashboard" style="display: none;">
+            <div class="dash-item">
+                <span>Trabalhado</span>
+                <strong id="horasTrabalhadas">00:00</strong>
+            </div>
+            <div class="dash-item">
+                <span>Restante</span>
+                <strong id="horasRestantes">07:20</strong>
+            </div>
+        </section>
+
+        <section class="controls">
+            <button class="btn-main" id="btnGravar">Bater Ponto Agora</button>
+            <button class="btn-clear" id="btnLimpar">Limpar Tudo</button>
+        </section>
+
+        <div id="historicoDias" class="timeline"></div>
+        <h4 class="dev">Desenvolvido por Thiago</h4>
+    </div>
+
+    <script src="scripts/js.js"></script>
+</body>
+</html>

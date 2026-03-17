@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Climate+Crisis:YEAR@1979&display=swap');
+:root {
+    --primary: green;
+    --success: #16a34a;
+    --bg: green;
+    --card: #ffffff;
+    --text: #1e293b;
+    --edit: #64748b;
+}
+
+body {
+    background-color: white;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    margin: 0; 
+    padding: 20px;
+    display: flex; 
+    justify-content: center;
+}
+
+.main-container { 
+    width: 100%; 
+    max-width: 500px; 
+}
+
+header {
+    text-align: center; 
+    margin-bottom:20px; 
+}
+header h1 {
+    text-shadow: 5px 5px 4px grey;
+    font-family: "Climate Crisis", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings:
+    "YEAR" 1979;
+}
+
+
+
+.meta-box { 
+    background: #e2e8f0; 
+    padding: 5px 15px; 
+    border-radius: 20px; 
+    display: inline-block; 
+    font-size: 0.9rem; 
+}
+
+.dashboard { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 15px; 
+    margin-bottom: 20px; 
+}
+.dash-item { 
+    background: var(--card); 
+    padding: 15px; 
+    border-radius: 12px; 
+    text-align: center; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+}
+.dash-item strong { 
+    font-size: 1.4rem; 
+    color: var(--primary); 
+}
+
+.controls { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; margin-bottom: 30px; 
+}
+.btn-main { 
+    background: var(--primary); color: white; border: none; 
+    padding: 18px; 
+    border-radius: 12px; 
+    font-size: 1.1rem; 
+    font-weight: bold; 
+    cursor: pointer; 
+}
+
+.btn-clear { 
+    background: transparent; 
+    color: #94a3b8; 
+    border: 1px solid #cbd5e1; 
+    padding: 8px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+}
+
+/* Blocos de Dia */
+.day-block { 
+    background: var(--card); 
+    border-radius: 16px; 
+    padding: 20px; 
+    margin-bottom: 20px; 
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05); 
+}
+.day-header { 
+    font-weight: bold; 
+    margin-bottom: 15px; 
+    color: var(--primary); 
+    border-bottom: 2px solid #f1f5f9; 
+    padding-bottom: 8px; 
+}
+
+.time-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    padding: 10px 0; 
+    border-bottom: 1px dashed #f1f1f1; 
+}
+
+.time-info { 
+    display: flex; 
+    flex-direction: column; 
+}
+.time-info strong { 
+    font-size: 1rem; 
+}
+
+.btn-edit {
+    background: #f1f5f9;
+    border: none;
+    color: var(--edit);
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: 0.2s;
+}
+
+.btn-edit:hover { 
+    background: #e2e8f0; 
+    color: var(--text); 
+}
+
+.interval-badge { 
+    background: #fef3c7; 
+    color: #92400e; 
+    padding: 2px 8px; 
+    border-radius: 4px; 
+    font-size: 0.75rem; 
+    margin-top: 4px; 
+    display: inline-block; 
+}
+.dev{
+    text-align: center;
+    padding-top:  30px;
+    color: black;
+    background-color: white;
+    padding: 10px 0px 0px 1px;
+    margin: 10px 0px 2px 0px;
+    
+}
