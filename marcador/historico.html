@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico Mensal</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <style>
+        .details-container { display: none; margin-top: 10px; padding-left: 10px; border-left: 3px solid var(--primary); }
+        .day-row-simple { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.9rem; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <header>
+            <h1>HISTÓRICO MENSAL</h1>
+            <a href="index.html" style="color: var(--edit); text-decoration: none;">← Voltar ao Início</a>
+        </header>
+
+        <div id="listaMeses" style="margin-top: 25px;">
+            </div>
+
+        <footer class="dev">Filtro por competência (Mês Fechado)</footer>
+    </div>
+
+    <script>
+        const META_DIARIA = 440;
+
+        function getDB() { return JSON.parse(localStorage.getItem('brutus_db_final') || '[]'); }
+
+        function formatarHhMm(minutosTotal) {
+            const isNegativo = minutosTotal < 0;
+            const minAbs = Math.abs(minutosTotal);
+            const h = Math.floor(minAbs / 60);
+            const m = minAbs % 60;
+            return `${isNegativo?'-':''}${h}h${String(m).padStart(2, '0')}m`;
+        }
+
+        function renderizarMeses() {
+            const db = getDB();
+            const container = document.getElementById('listaMeses');
+            
+            // Agrupar por Mês/Ano
+            const meses = db.reduce((acc, r) => {
+                const [dia, mes, ano] = r.data.split('/');
+                const chave = `${mes}/${ano}`;
+                if (!acc[chave]) acc[chave] = { dias: {}, totalMinutos: 0 };
+                
+                if (!acc[chave].dias[r.data]) acc[chave].dias[r.data] = [];
+                acc[chave].dias[r.data].push(r);
+                return acc;
+            }, {});
+
+            if (Object.keys(meses).length === 0) {
+                container.innerHTML = "<p style='text-align:center;'>Nenhum registro encontrado.</p>";
+                return;
+            }
+
+            Object.keys(meses).sort().reverse().forEach(mesAno => {
+                const dadosMes = meses[mesAno];
+                let saldoMes = 0;
+                let htmlDias = '';
+
+                Object.keys(dadosMes.dias).forEach(data => {
+                    const registros = dadosMes.dias[data];
+                    let minTrabalhados = 0;
+                    
+                    for (let i = 0; i < registros.length; i += 2) {
+                        if (registros[i+1]) {
+                            minTrabalhados += Math.round((registros[i+1].ts - registros[i].ts) / 60000);
+                        }
+                    }
+                    
+                    const saldoDia = minTrabalhados - META_DIARIA;
+                    saldoMes += saldoDia;
+
+                    htmlDias += `
+                        <div class="day-row-simple">
+                            <span>${data}</span>
+                            <span>Trabalhado: ${formatarHhMm(minTrabalhados)}</span>
+                            <span style="color: ${saldoDia >= 0 ? 'green' : 'red'}">${saldoDia >= 0 ? '+' : ''}${formatarHhMm(saldoDia)}</span>
+                        </div>`;
+                });
+
+                const mesBlock = document.createElement('div');
+                mesBlock.innerHTML = `
+                    <div class="month-summary" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
+                        <strong>${mesAno}</strong>
+                        <div style="text-align: right">
+                            <small>Saldo Mensal</small><br>
+                            <strong style="color: ${saldoMes >= 0 ? 'var(--success)' : '#dc2626'}">${formatarHhMm(saldoMes)}</strong>
+                        </div>
+                    </div>
+                    <div class="details-container">
+                        ${htmlDias}
+                    </div>
+                `;
+                container.appendChild(mesBlock);
+            });
+        }
+
+        window.onload = renderizarMeses;
+    </script>
+</body>
+</html>
