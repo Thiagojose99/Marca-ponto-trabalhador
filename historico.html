@@ -3,103 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Histórico Mensal</title>
+    <title>Folha de Ponto - Histórico</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .details-container { display: none; margin-top: 10px; padding-left: 10px; border-left: 3px solid var(--primary); }
-        .day-row-simple { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.9rem; border-bottom: 1px solid #eee; }
-    </style>
+    
 </head>
 <body>
-    <div class="main-container">
-        <header>
-            <h1>HISTÓRICO MENSAL</h1>
-            <a href="index.html" style="color: var(--edit); text-decoration: none;">← Voltar ao Início</a>
+
+    <div class="main-container" style="max-width: 600px;">
+        <header class="header-hist">
+            <a href="index.html" class="btn-voltar">⬅ Voltar</a>
+            <h2 style="margin: 0; font-size: 1.1rem; color: var(--green-success);">FOLHA DE PONTO MENSAL</h2>
         </header>
 
-        <div id="listaMeses" style="margin-top: 25px;">
+        <div class="resumo-topo">
+            <div>
+                <span style="display:block; font-size:0.7rem; color:var(--text-muted)">SALDO DO CICLO</span>
+                <strong id="saldoAcumulado" style="font-size: 1.4rem;">00:00</strong>
             </div>
+            <div style="text-align: right;">
+                <span style="display:block; font-size:0.7rem; color:var(--text-muted)">FECHAMENTO</span>
+                <strong id="infoCiclo" style="font-size: 1rem;">DIA 25</strong>
+            </div>
+        </div>
 
-        <footer class="dev">Filtro por competência (Mês Fechado)</footer>
+        <div class="tabela-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-data">Data</th>
+                        <th>Batidas</th>
+                        <th>Total</th>
+                        <th>Saldo</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoTabela">
+                    </tbody>
+            </table>
+        </div>
+
+        <footer class="dev">
+            Thiago &copy; 2026 Historico 
+        </footer>
     </div>
 
     <script>
-        const META_DIARIA = 440;
+        const META_MINUTOS = 440; 
+        let DIA_FECHAMENTO = parseInt(localStorage.getItem('dia_fechamento') || '25');
 
-        function getDB() { return JSON.parse(localStorage.getItem('brutus_db_final') || '[]'); }
+        function getDB() { 
+            return JSON.parse(localStorage.getItem('brutus_final_v6') || '[]'); 
+        }
 
-        function formatarHhMm(minutosTotal) {
+        function formatarHhMm(minutosTotal, comSinal = false) {
             const isNegativo = minutosTotal < 0;
             const minAbs = Math.abs(minutosTotal);
             const h = Math.floor(minAbs / 60);
             const m = minAbs % 60;
-            return `${isNegativo?'-':''}${h}h${String(m).padStart(2, '0')}m`;
+            let sinal = comSinal ? (isNegativo ? "-" : "+") : (isNegativo ? "-" : "");
+            return `${sinal}${h > 0 ? h + 'h' : ''}${String(m).padStart(2, '0')}m`;
         }
 
-        function renderizarMeses() {
+        function pertenceAoCicloAtual(dataStr) {
+            const hoje = new Date();
+            const [dia, mes, ano] = dataStr.split('/').map(Number);
+            const dataReg = new Date(ano, mes - 1, dia);
+            let inicio, fim;
+            if (hoje.getDate() > DIA_FECHAMENTO) {
+                inicio = new Date(hoje.getFullYear(), hoje.getMonth(), DIA_FECHAMENTO + 1);
+                fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, DIA_FECHAMENTO);
+            } else {
+                inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, DIA_FECHAMENTO + 1);
+                fim = new Date(hoje.getFullYear(), hoy.getMonth(), DIA_FECHAMENTO);
+            }
+            return dataReg >= inicio && dataReg <= fim;
+        }
+
+        function carregarTabela() {
             const db = getDB();
-            const container = document.getElementById('listaMeses');
-            
-            // Agrupar por Mês/Ano
-            const meses = db.reduce((acc, r) => {
-                const [dia, mes, ano] = r.data.split('/');
-                const chave = `${mes}/${ano}`;
-                if (!acc[chave]) acc[chave] = { dias: {}, totalMinutos: 0 };
-                
-                if (!acc[chave].dias[r.data]) acc[chave].dias[r.data] = [];
-                acc[chave].dias[r.data].push(r);
+            const corpo = document.getElementById('corpoTabela');
+            let saldoTotalCiclo = 0;
+
+            const grupos = db.reduce((acc, r) => {
+                (acc[r.data] = acc[r.data] || []).push(r);
                 return acc;
             }, {});
 
-            if (Object.keys(meses).length === 0) {
-                container.innerHTML = "<p style='text-align:center;'>Nenhum registro encontrado.</p>";
-                return;
-            }
-
-            Object.keys(meses).sort().reverse().forEach(mesAno => {
-                const dadosMes = meses[mesAno];
-                let saldoMes = 0;
-                let htmlDias = '';
-
-                Object.keys(dadosMes.dias).forEach(data => {
-                    const registros = dadosMes.dias[data];
-                    let minTrabalhados = 0;
-                    
-                    for (let i = 0; i < registros.length; i += 2) {
-                        if (registros[i+1]) {
-                            minTrabalhados += Math.round((registros[i+1].ts - registros[i].ts) / 60000);
-                        }
-                    }
-                    
-                    const saldoDia = minTrabalhados - META_DIARIA;
-                    saldoMes += saldoDia;
-
-                    htmlDias += `
-                        <div class="day-row-simple">
-                            <span>${data}</span>
-                            <span>Trabalhado: ${formatarHhMm(minTrabalhados)}</span>
-                            <span style="color: ${saldoDia >= 0 ? 'green' : 'red'}">${saldoDia >= 0 ? '+' : ''}${formatarHhMm(saldoDia)}</span>
-                        </div>`;
-                });
-
-                const mesBlock = document.createElement('div');
-                mesBlock.innerHTML = `
-                    <div class="month-summary" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
-                        <strong>${mesAno}</strong>
-                        <div style="text-align: right">
-                            <small>Saldo Mensal</small><br>
-                            <strong style="color: ${saldoMes >= 0 ? 'var(--success)' : '#dc2626'}">${formatarHhMm(saldoMes)}</strong>
-                        </div>
-                    </div>
-                    <div class="details-container">
-                        ${htmlDias}
-                    </div>
-                `;
-                container.appendChild(mesBlock);
+            const datasOrdenadas = Object.keys(grupos).sort((a, b) => {
+                const dateA = a.split('/').reverse().join('');
+                const dateB = b.split('/').reverse().join('');
+                return dateB.localeCompare(dateA);
             });
+
+            corpo.innerHTML = '';
+
+            datasOrdenadas.forEach(data => {
+                const registros = grupos[data];
+                let minTrabalhados = 0;
+                
+                // Formata as batidas para a coluna (ex: 08:00 | 12:00)
+                const batidasStr = registros.map(r => r.hora).join(' | ');
+
+                // Cálculo das horas trabalhadas
+                for (let i = 0; i < registros.length; i += 2) {
+                    if (registros[i+1]) {
+                        minTrabalhados += Math.round((registros[i+1].ts - registros[i].ts) / 60000);
+                    }
+                }
+
+                const saldoDia = minTrabalhados - META_MINUTOS;
+                const classeSaldo = saldoDia >= 0 ? 'saldo-pos' : 'saldo-neg';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="col-data">${data.split('/')[0]}/${data.split('/')[1]}</td>
+                    <td class="col-batidas">${batidasStr}</td>
+                    <td>${formatarHhMm(minTrabalhados)}</td>
+                    <td class="${classeSaldo}">${formatarHhMm(saldoDia, true)}</td>
+                `;
+                corpo.appendChild(tr);
+
+                if (pertenceAoCicloAtual(data)) {
+                    saldoTotalCiclo += saldoDia;
+                }
+            });
+
+            document.getElementById('saldoAcumulado').innerText = formatarHhMm(saldoTotalCiclo, true);
+            document.getElementById('saldoAcumulado').className = saldoTotalCiclo >= 0 ? 'saldo-pos' : 'saldo-neg';
+            document.getElementById('infoCiclo').innerText = `DIA ${DIA_FECHAMENTO}`;
         }
 
-        window.onload = renderizarMeses;
+        window.onload = carregarTabela;
     </script>
 </body>
 </html>
